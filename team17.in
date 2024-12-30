@@ -1,0 +1,135 @@
+go atlas  
+# Start ATLAS simulator 
+mesh space.mult=1.0  
+# Set global mesh spacing multiplier
+#Defining TFET structure considering meshing, defining regions, electrodes and doping.
+# Define X-direction mesh
+x.mesh loc=0.000 spac=0.01   
+x.mesh loc=0.090 spac=0.001  
+x.mesh loc=0.100 spac=0.00001   
+x.mesh loc=0.105 spac=0.0001  
+x.mesh loc=0.115 spac=0.001  
+x.mesh loc=0.120 spac=0.0001  
+x.mesh loc=0.130 spac=0.00001  
+x.mesh loc=0.135 spac=0.001  
+x.mesh loc=0.180 spac=0.001  
+x.mesh loc=0.230 spac=0.01   
+ 
+# Define Y-direction mesh
+y.mesh loc=-0.003 spac=0.0005  
+y.mesh loc=0.000 spac=0.0001   
+y.mesh loc=0.002 spac=0.0005   
+y.mesh loc=0.008 spac=0.0005  
+y.mesh loc=0.010 spac=0.0001    
+y.mesh loc=0.013 spac=0.0005    
+
+
+
+
+
+
+# Define material regions
+region num=1 y.max=0.000 material=Oxide  
+# Region 1: Oxide below y=0
+region num=2 y.min=0.000 y.max=0.010 x.max=0.100 material=Silicon  
+# Silicon region up to x=0.1
+region num=3 y.min=0.000 y.max=0.010 x.min=0.100 x.max=0.130 material=Silicon  
+# Silicon in middle region
+region num=4 y.min=0.000 y.max=0.010 x.min=0.130 material=Silicon  
+# Silicon region beyond x=0.13
+region num=5 y.min=0.010 material=Oxide  
+# Oxide region above y=0.01
+ 
+# Define electrodes
+electrode name=gate x.min=0.100 x.max=0.130 top  
+# Gate electrode on top of the central silicon region
+electrode name=drain x.max=0.050 y.min=0 y.max=0  
+# Drain electrode at the left boundary
+electrode name=source x.min=0.180 y.min=0 y.max=0  
+# Source electrode at the right boundary
+electrode name=gate2 x.min=0.100 x.max=0.130 bottom  
+# Second gate electrode at the bottom of the central silicon region
+ 
+# Define QTx mesh (quantum tunneling mesh for precision in critical areas)
+qtx.mesh loc=0.050 spac=0.0005  
+# X-direction fine mesh for quantum tunneling
+qtx.mesh loc=0.130 spac=0.0002  
+# Highly refined mesh near central regions
+qtx.mesh loc=0.200 spac=0.0005  
+qty.mesh loc=0.000 spac=0.0005  
+# Y-direction tunneling mesh refinement
+qty.mesh loc=0.005 spac=0.001  
+qty.mesh loc=0.010 spac=0.0005  
+# Refinement at the upper boundary
+ 
+
+
+
+# Set material properties
+material material=Silicon me.tunnel=0.14 region=2  
+# Define electron tunneling mass for silicon in region 2 
+# Define doping regions
+doping uniform n.type conc=1e17 region=3  
+# N-type doping with 1e17 concentration in region 3
+doping uniform n.type conc=5e18 region=2  
+# Heavily doped N-type with 5e18 concentration in region 2
+doping uniform p.type conc=1e20 region=4  
+# Heavily doped P-type with 1e20 concentration in region 4
+ 
+# Define contact properties
+contact name=gate workfunction=4.5  
+# Gate contact with 4.5 eV workfunction
+contact name=gate2 workfunction=4.5 common=gate  
+# Gate2 shares the same workfunction as gate
+ 
+# Define simulation models
+models bbt.nonlocal bbt.forward qtunn.dir=1 bgn consrh conmob  
+# Enable non-local band-to-band tunneling, quantum tunneling, SRH recombination, and mobility models
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Initialize and solve the simulation
+print  
+solve init  
+solve vsource=0.0  
+# Set initial source voltage
+solve vgate=0.0  
+# Set initial gate voltage
+solve vgate2=0.0  
+# Set initial second gate voltage
+solve vdrain=0.03125  
+# Solve for first drain voltage step
+solve vdrain=0.0625  
+# Solve for second drain voltage step
+solve vdrain=0.125  
+# Solve for third drain voltage step
+solve vdrain=0.25  
+# Solve for fourth drain voltage step
+solve vdrain=0.5  
+# Solve for fifth drain voltage step
+solve vdrain=1.0  
+# Solve for final drain voltage
+ 
+solve vgate=0 vstep=0.1 vfinal=2 name=gate  
+# Sweep gate voltage from 0 to 2V in steps of 0.1V
+ 
+# Output results and save data
+output val.band con.band charge e.lines  
+# Output band structures, charge distribution, and electric field lines
+save outf=t17.str  
+# Save simulation results to a file
+tonyplot t17.str  
+# Plot the results using TonyPlot
+quit  
+
+ 
